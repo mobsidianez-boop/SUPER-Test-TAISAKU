@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyDash | 中2国語</title>
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #4F46E5; 
+      --primary-dark: #3730A3;
+      --primary-light: #EEF2FF;
+      --accent: #F43F5E;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --bg: #F1F5F9;
+      --card-bg: #FFFFFF;
+      --correct: #10B981;
+      --correct-bg: #D1FAE5;
+      --wrong: #F43F5E;
+      --wrong-bg: #FFE4E6;
+      --border: #E2E8F0;
+      --radius: 16px;
+      --font-main: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-eng: 'Montserrat', sans-serif;
+      --font-num: 'Quicksand', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background: var(--card-bg);
+      max-width: 560px;
+      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(255,255,255,0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .lucide {
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .icon-xs { width: 14px; height: 14px; stroke-width: 2.5; }
+    .icon-sm { width: 18px; height: 18px; stroke-width: 2.5; }
+    .icon-md { width: 22px; height: 22px; stroke-width: 2; }
+    .icon-lg { width: 28px; height: 28px; stroke-width: 2; }
+    .icon-xl { width: 32px; height: 32px; stroke-width: 2; }
+    .icon-xxl { width: 64px; height: 64px; stroke-width: 1.5; }
+
+    #splashScreen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--primary);
+      z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    #splashScreen.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .splash-logo {
+      font-family: var(--font-eng);
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      opacity: 0;
+      transform: translateY(20px);
+      margin-bottom: 8px;
+    }
+    .splash-logo.play { animation: splashFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    .splash-sub {
+      font-family: var(--font-eng);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      letter-spacing: 4px;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    .splash-sub.play { animation: splashFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards; }
+    
+    @keyframes splashFadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header { 
+      background: var(--card-bg); 
+      color: var(--text); 
+      padding: 16px 24px; 
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-logo-group { display: flex; align-items: center; gap: 8px; }
+    .header-icon { color: var(--primary); }
+    .header-title { 
+      font-family: var(--font-eng); 
+      font-weight: 900; 
+      font-size: 1.25rem; 
+      color: var(--text); 
+      letter-spacing: -0.5px;
+    }
+    .header-title span { font-family: var(--font-main); font-weight: 700; font-size: 1rem; color: var(--text-muted); margin-left: 6px; }
+    .sound-btn { 
+      background: var(--bg); border: none; color: var(--text-muted); 
+      width: 40px; height: 40px; border-radius: 50%; cursor: pointer; 
+      display: flex; align-items: center; justify-content: center; 
+      transition: all 0.2s; 
+    }
+    .sound-btn:hover { background: #E2E8F0; color: var(--text); }
+
+    .screen { padding: 32px 24px; display: none; }
+    .screen.active { display: block; animation: fadeInScreen 0.4s ease-out; }
+    @keyframes fadeInScreen { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-label { 
+      font-weight: 700; font-size: 0.8rem; color: var(--text-muted); 
+      display: block; text-align: left; margin-bottom: 12px; 
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .start-header { margin-bottom: 32px; text-align: center; }
+    .start-title { font-size: 1.5rem; font-weight: 900; color: var(--text); }
+    .start-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+
+    .mode-selection { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+    .mode-card { 
+      background: var(--bg); border: 2px solid transparent; border-radius: 14px; 
+      padding: 16px 20px; text-align: left; cursor: pointer; 
+      display: flex; align-items: center; gap: 16px; transition: all 0.2s; 
+    }
+    .mode-card:hover { background: #E2E8F0; }
+    .mode-card.selected { 
+      background: var(--card-bg); border-color: var(--primary); 
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+    }
+    .mode-icon { color: var(--text-muted); flex-shrink: 0; transition: color 0.2s; }
+    .mode-card.selected .mode-icon { color: var(--primary); }
+    .mode-info-title { font-weight: 700; font-size: 1rem; color: var(--text); transition: color 0.2s; }
+    .mode-card.selected .mode-info-title { color: var(--primary); }
+    .mode-info-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+    .count-selection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; }
+    .count-btn { 
+      background: var(--bg); border: 2px solid transparent; border-radius: 12px; 
+      padding: 14px; font-weight: 700; font-size: 0.9rem; cursor: pointer; 
+      color: var(--text); transition: all 0.2s; 
+    }
+    .count-btn.selected { 
+      background: var(--card-bg); border-color: var(--primary); 
+      color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+    }
+
+    .primary-btn { 
+      display: flex; align-items: center; justify-content: center; gap: 8px; 
+      background: var(--primary); color: white; border: none; width: 100%; 
+      padding: 16px; border-radius: 12px; font-size: 1.05rem; font-weight: 700; 
+      cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); 
+      transition: all 0.2s; 
+    }
+    .primary-btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3); }
+    .primary-btn:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2); }
+
+    .quiz-header { display: flex; flex-direction: column; margin-bottom: 20px; font-size: 0.85rem; }
+    .quiz-header-top { display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 12px; }
+    
+    .badge-category { 
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; 
+      border-radius: 20px; background: var(--bg); color: var(--text); font-weight: 700; font-size: 0.8rem; 
+    }
+    
+    .retire-btn { 
+      background: transparent; color: var(--text-muted); border: 1px solid var(--border); 
+      padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; 
+      cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; 
+    }
+    .retire-btn:hover { background: var(--wrong-bg); color: var(--wrong); border-color: var(--wrong); }
+
+    .quiz-progress-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+    .quiz-progress-text { font-family: var(--font-num); font-weight: 700; font-size: 0.9rem; color: var(--text-muted); }
+    .quiz-progress-text strong { font-size: 1.1rem; color: var(--primary); }
+    
+    .quiz-score-tracker { display: flex; gap: 12px; font-family: var(--font-num); font-weight: 700; font-size: 0.9rem; }
+    .tracker-correct { color: var(--correct); display: flex; align-items: center; gap: 4px; }
+    .tracker-wrong { color: var(--wrong); display: flex; align-items: center; gap: 4px; }
+
+    .progress-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
+    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    .question-title { font-size: 1.1rem; font-weight: 700; line-height: 1.6; color: var(--text); margin-bottom: 24px; white-space: pre-wrap; }
+    .options-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    
+    .option-btn { 
+      background: var(--card-bg); border: 2px solid var(--border); padding: 16px; 
+      border-radius: 12px; font-size: 0.95rem; color: var(--text); cursor: pointer; 
+      text-align: left; transition: all 0.2s ease; display: flex; align-items: center; gap: 16px; line-height: 1.5; font-weight: 500;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--primary); background: var(--bg); }
+    .option-num { 
+      background: var(--bg); color: var(--text-muted); width: 28px; height: 28px; 
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0; font-family: var(--font-num); transition: all 0.2s;
+    }
+    
+    .option-btn.correct { background: var(--correct-bg) !important; border-color: var(--correct) !important; color: var(--correct); font-weight: 700; }
+    .option-btn.correct .option-num { background: var(--correct); color: white; }
+    .option-btn.wrong { background: var(--wrong-bg) !important; border-color: var(--wrong) !important; color: var(--wrong); }
+    .option-btn.wrong .option-num { background: var(--wrong); color: white; }
+
+    .feedback-box { 
+      display: none; background: var(--bg); border-radius: 12px; padding: 20px; 
+      margin-bottom: 24px; animation: fadeIn 0.3s ease-out forwards; opacity: 0; transform: translateY(10px);
+    }
+    .feedback-status { font-weight: 900; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .feedback-status.is-correct { color: var(--correct); }
+    .feedback-status.is-wrong { color: var(--wrong); }
+    .feedback-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); }
+    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+    .result-content { text-align: center; position: relative; }
+    #confettiCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+    
+    .result-header { margin-bottom: 32px; }
+    
+    .rank-display { 
+      width: 100px; height: 100px; margin: 0 auto 20px; 
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-eng); font-weight: 900; font-size: 3.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: white;
+      animation: popRank 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes popRank { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    .rank-s { background: linear-gradient(135deg, #F59E0B, #D97706); }
+    .rank-a { background: linear-gradient(135deg, #4F46E5, #3730A3); }
+    .rank-b { background: linear-gradient(135deg, #10B981, #059669); }
+    .rank-c { background: linear-gradient(135deg, #64748B, #475569); }
+
+    .result-msg { font-size: 1.4rem; font-weight: 900; margin-bottom: 8px; color: var(--text); }
+    .result-submsg { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+    
+    .score-stats { 
+      display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; 
+      background: var(--bg); padding: 20px; border-radius: 16px;
+    }
+    .stat-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-value { font-family: var(--font-num); font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .stat-value.highlight { color: var(--primary); }
+
+    .review-list { 
+      text-align: left; margin-bottom: 24px; max-height: 280px; overflow-y: auto; 
+      border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--bg); 
+    }
+    .review-item { padding: 16px 0; border-bottom: 1px dashed var(--border); font-size: 0.85rem; }
+    .review-item:first-child { padding-top: 0; }
+    .review-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .review-q { font-weight: 700; color: var(--text); margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+    .review-ans { color: var(--correct); font-weight: 700; padding-left: 26px; margin-bottom: 4px; }
+    .review-exp { color: var(--text-muted); padding-left: 26px; line-height: 1.5; }
+
+    .modal-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6); 
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .modal-content {
+      background: var(--card-bg);
+      width: 85%; max-width: 320px;
+      border-radius: 20px; padding: 24px; text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+    
+    .modal-icon {
+      background: #FEF3C7; color: #D97706;
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
+    .modal-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px; white-space: pre-wrap; }
+    .modal-actions { display: flex; gap: 12px; }
+    
+    .modal-btn-cancel, .modal-btn-confirm {
+      flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .modal-btn-cancel { background: var(--bg); color: var(--text-muted); }
+    .modal-btn-cancel:hover { background: #E2E8F0; color: var(--text); }
+    .modal-btn-confirm { background: var(--wrong); color: white; }
+    .modal-btn-confirm:hover { background: #E11D48; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- スプラッシュ画面 -->
+  <div id="splashScreen">
+    <div class="splash-logo" id="animTextPart1">StudyDash</div>
+    <div class="splash-sub" id="animSubText">JAPANESE TEST PREP</div>
+  </div>
+
+  <!-- ヘッダー -->
+  <header>
+    <div class="header-logo-group">
+      <i data-lucide="book-open" class="header-icon icon-lg"></i>
+      <div class="header-title">StudyDash<span>中2国語</span></div>
+    </div>
+    <button class="sound-btn" id="soundToggleBtn" title="音のON/OFF">
+      <i data-lucide="volume-2" id="soundIcon" class="icon-sm"></i>
+    </button>
+  </header>
+
+  <!-- スタート画面 -->
+  <div class="screen active" id="startScreen">
+    <div class="start-header">
+      <h1 class="start-title">さあ、始めましょう</h1>
+      <p class="start-subtitle">定期テスト対策ミニゲーム</p>
+    </div>
+
+    <span class="section-label">SELECT MODE</span>
+    <div class="mode-selection">
+      <div class="mode-card selected" data-mode="kanji_yomi">
+        <span class="mode-icon"><i data-lucide="type" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">漢字の読み</div>
+          <div class="mode-info-desc">情報整理・漢字1・漢字2 の読み問題</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="kanji_kaki">
+        <span class="mode-icon"><i data-lucide="pen-tool" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">漢字の書き</div>
+          <div class="mode-info-desc">情報整理・漢字1・漢字2 の書き問題</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="doushi1">
+        <span class="mode-icon"><i data-lucide="split-square-horizontal" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">動詞の活用(1)</div>
+          <div class="mode-info-desc">五段活用、他動詞・自動詞、可能動詞など</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="doushi2">
+        <span class="mode-icon"><i data-lucide="git-merge" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">動詞の活用(2)・(3)</div>
+          <div class="mode-info-desc">上一段・下一段活用、カ変・サ変活用</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="jukugo">
+        <span class="mode-icon"><i data-lucide="blocks" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">熟語の構成</div>
+          <div class="mode-info-desc">二字、三字、四字熟語の組み立て方</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="kumazemi">
+        <span class="mode-icon"><i data-lucide="microscope" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">クマゼミの説明文</div>
+          <div class="mode-info-desc">説明文の読み取りと論理的理解</div>
+        </div>
+      </div>
+      <div class="mode-card" data-mode="tanka">
+        <span class="mode-icon"><i data-lucide="feather" class="icon-xl"></i></span>
+        <div>
+          <div class="mode-info-title">短歌に親しむ</div>
+          <div class="mode-info-desc">短歌の知識、作者、表現の意味など</div>
+        </div>
+      </div>
+    </div>
+
+    <span class="section-label">QUESTIONS</span>
+    <div class="count-selection">
+      <button class="count-btn selected" data-count="5">5問サクッと</button>
+      <button class="count-btn" data-count="all">全問挑戦</button>
+    </div>
+
+    <button class="primary-btn" id="startBtn">スタート</button>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div class="screen" id="quizScreen">
+    <div class="quiz-header">
+      <div class="quiz-header-top">
+        <span class="badge-category" id="quizModeBadge"></span>
+        <button id="retireBtn" class="retire-btn"><i data-lucide="flag" class="icon-xs"></i> 終了する</button>
+      </div>
+      <div class="quiz-progress-info">
+        <div class="quiz-progress-text">Q <strong id="currentQNum">1</strong> / <span id="totalQNum">5</span></div>
+        <div class="quiz-score-tracker">
+          <span class="tracker-correct"><i data-lucide="check" class="icon-xs"></i> <span id="trackCorrect">0</span></span>
+          <span class="tracker-wrong"><i data-lucide="x" class="icon-xs"></i> <span id="trackWrong">0</span></span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <h2 class="question-title" id="questionText">問題文</h2>
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="feedback-box" id="feedbackBox">
+      <div class="feedback-status" id="feedbackStatus">正解！</div>
+      <div class="feedback-text" id="feedbackText">解説文</div>
+    </div>
+
+    <button class="primary-btn" id="nextBtn" style="display: none;">次の問題へ <i data-lucide="arrow-right" class="icon-sm"></i></button>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="screen" id="resultScreen">
+    <div class="result-content">
+      <canvas id="confettiCanvas"></canvas>
+      
+      <div class="result-header">
+        <div class="rank-display" id="rankBadge">S</div>
+        <h2 class="result-msg" id="resultTitle">完璧です！</h2>
+        <p class="result-submsg" id="resultDesc">素晴らしい成績を収めました。</p>
+      </div>
+      
+      <div class="score-stats">
+        <div class="stat-item">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-value highlight"><span id="finalScorePercent">100</span>%</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Correct</span>
+          <span class="stat-value"><span id="finalScoreNum">5</span>/<span id="finalScoreTotal">5</span></span>
+        </div>
+      </div>
+
+      <div class="review-list" id="reviewContainer"></div>
+
+      <button class="primary-btn" id="retryBtn"><i data-lucide="rotate-ccw" class="icon-sm"></i> トップに戻る</button>
+    </div>
+  </div>
+
+  <!-- カスタムモーダル -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <i data-lucide="alert-triangle" class="icon-lg"></i>
+      </div>
+      <h3 class="modal-title" id="modalTitle">確認</h3>
+      <p class="modal-text" id="modalMessage">メッセージ</p>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="modalCancelBtn">キャンセル</button>
+        <button class="modal-btn-confirm" id="modalConfirmBtn">OK</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<script>
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const splashScreen = document.getElementById("splashScreen");
+  const animTextPart1 = document.getElementById("animTextPart1");
+  const animSubText = document.getElementById("animSubText");
+  let splashTimer = null;
+
+  function runSplashAnimation(onComplete) {
+    animTextPart1.classList.add("play");
+    animSubText.classList.add("play");
+    splashScreen.classList.remove("fade-out");
+
+    clearTimeout(splashTimer);
+    splashTimer = setTimeout(() => {
+      splashScreen.classList.add("fade-out");
+      if (onComplete) onComplete();
+    }, 1800);
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    runSplashAnimation();
+  });
+
+  const QUESTION_BANK = {
+    kanji_yomi: [
+      { q: "「複雑」な構造の機械。\n「複雑」の読み方は？", options: ["ふくざつ", "ふくさい", "ふくしゃ", "ふくさん"], answer: 0, exp: "「複雑（ふくざつ）」と読みます。" },
+      { q: "事故の「要因」を知る。\n「要因」の読み方は？", options: ["よういん", "ようい", "よいいん", "ようえん"], answer: 0, exp: "「要因（よういん）」と読みます。" },
+      { q: "「改善策」を考える。\n「改善策」の読み方は？", options: ["かいぜんさく", "かいぜん", "かいしんさく", "かいしょうさく"], answer: 0, exp: "「改善策（かいぜんさく）」と読みます。" },
+      { q: "流れに身を「委」ねる。\n「委」の読み方は？", options: ["ゆだ（ねる）", "まか（ねる）", "い（ねる）", "あた（ねる）"], answer: 0, exp: "「委ねる（ゆだねる）」と読みます。" },
+      { q: "「土壌」が汚染される。\n「土壌」の読み方は？", options: ["どじょう", "どこう", "どば", "どきょう"], answer: 0, exp: "「土壌（どじょう）」と読みます。" },
+      { q: "森林「伐採」が進む。\n「伐採」の読み方は？", options: ["ばっさい", "ばつさい", "ぼっさい", "ばつばい"], answer: 0, exp: "「伐採（ばっさい）」と読みます。" },
+      { q: "満面の笑みを「浮」かべる。\n「浮」の読み方は？", options: ["う（かべる）", "うか（かべる）", "ふ（かべる）", "のぞ（かべる）"], answer: 0, exp: "「浮かべる（うかべる）」と読みます。" },
+      { q: "「簡潔」にまとめる。\n「簡潔」の読み方は？", options: ["かんけつ", "かんしょう", "かんけい", "かんきつ"], answer: 0, exp: "「簡潔（かんけつ）」と読みます。" },
+      { q: "「情報」を提供する。\n「情報」の読み方は？", options: ["じょうほう", "じょうぼう", "じょほう", "しょうほう"], answer: 0, exp: "「情報（じょうほう）」と読みます。" },
+      { q: "有名な「企業」に勤める。\n「企業」の読み方は？", options: ["きぎょう", "きこう", "きぎゅう", "きっこう"], answer: 0, exp: "「企業（きぎょう）」と読みます。" },
+      { q: "道路を「清掃」する。\n「清掃」の読み方は？", options: ["せいそう", "せいじょう", "しょうそう", "せんそう"], answer: 0, exp: "「清掃（せいそう）」と読みます。" },
+      { q: "「豊富」な資源を生かす。\n「豊富」の読み方は？", options: ["ほうふ", "ほうぶ", "ほうまん", "ぼうふ"], answer: 0, exp: "「豊富（ほうふ）」と読みます。" },
+      { q: "公演が「成功」する。\n「成功」の読み方は？", options: ["せいこう", "せいごう", "しょうこう", "しんこう"], answer: 0, exp: "「成功（せいこう）」と読みます。" },
+      { q: "歴史を「専門」に学ぶ。\n「専門」の読み方は？", options: ["せんもん", "せんも", "せんぽん", "せも"], answer: 0, exp: "「専門（せんもん）」と読みます。" },
+      { q: "「絶対的」な力をもつ。\n「絶対的」の読み方は？", options: ["ぜったいてき", "ぜったい", "ぜつだいてき", "ぜっていてき"], answer: 0, exp: "「絶対的（ぜったいてき）」と読みます。" },
+      { q: "「表彰式」に出る。\n「表彰式」の読み方は？", options: ["ひょうしょうしき", "ひょうじょうしき", "ひょしょうしき", "ひょうしょうき"], answer: 0, exp: "「表彰式（ひょうしょうしき）」と読みます。" },
+      { q: "「可能性」が高い。\n「可能性」の読み方は？", options: ["かのうせい", "かのう", "かどうせい", "かのせい"], answer: 0, exp: "「可能性（かのうせい）」と読みます。" },
+      { q: "「国際」交流の機会。\n「国際」の読み方は？", options: ["こくさい", "こくさ", "こくざい", "こっさい"], answer: 0, exp: "「国際（こくさい）」と読みます。" },
+      { q: "運転「免許証」の取得。\n「免許証」の読み方は？", options: ["めんきょしょう", "めんきょ", "めんごしょう", "めっきょしょう"], answer: 0, exp: "「免許証（めんきょしょう）」と読みます。" },
+      { q: "「自我」の意識がめばえる。\n「自我」の読み方は？", options: ["じが", "じわ", "じか", "ちが"], answer: 0, exp: "「自我（じが）」と読みます。" },
+      { q: "「麦芽」から作る飲料。\n「麦芽」の読み方は？", options: ["ばくが", "むぎが", "ばくか", "むぎめ"], answer: 0, exp: "「麦芽（ばくが）」と読みます。" },
+      { q: "古くからの「師弟」関係。\n「師弟」の読み方は？", options: ["してい", "ししゅう", "しだい", "して"], answer: 0, exp: "「師弟（してい）」と読みます。" },
+      { q: "「雌雄」を決する時だ。\n「雌雄」の読み方は？", options: ["しゆう", "しゅゆう", "しよう", "すう"], answer: 0, exp: "「雌雄（しゆう）」と読みます。" },
+      { q: "「日没」までに帰る。\n「日没」の読み方は？", options: ["にちぼつ", "にちばつ", "じつぼつ", "ひぼつ"], answer: 0, exp: "「日没（にちぼつ）」と読みます。" },
+      { q: "「疾風迅雷」\n「疾風迅雷」の読み方は？", options: ["しっぷうじんらい", "しふうじんらい", "しっぷうしんらい", "しっぷうとんらい"], answer: 0, exp: "「疾風迅雷（しっぷうじんらい）」と読みます。" },
+      { q: "「鯨飲」馬食をする。\n「鯨飲」の読み方は？", options: ["げいいん", "げいしょく", "くじらいん", "けいいん"], answer: 0, exp: "「鯨飲（げいいん）」と読みます。" },
+      { q: "「温厚篤実」\n「温厚篤実」の読み方は？", options: ["おんこうとくじつ", "おんこうとくしつ", "おんこうあつじつ", "おんこうどくじつ"], answer: 0, exp: "「温厚篤実（おんこうとくじつ）」と読みます。" },
+      { q: "特性を「遺憾」なく示す。\n「遺憾」の読み方は？", options: ["いかん", "いとん", "ゆいかん", "いかんが"], answer: 0, exp: "「遺憾（いかん）」と読みます。" },
+      { q: "「慈愛」深い母の顔。\n「慈愛」の読み方は？", options: ["じあい", "じい", "じょうあい", "ちあい"], answer: 0, exp: "「慈愛（じあい）」と読みます。" },
+      { q: "表情が「豊」かだ。\n「豊」の読み方は？", options: ["ゆた（かだ）", "ほう（かだ）", "とよ（かだ）", "ほ（かだ）"], answer: 0, exp: "「豊かだ（ゆたかだ）」と読みます。" },
+      { q: "時間に「余裕」がある。\n「余裕」の読み方は？", options: ["よゆう", "よゅう", "よきゅう", "ゆゆう"], answer: 0, exp: "「余裕（よゆう）」と読みます。" },
+      { q: "彼は「素朴」な好青年だ。\n「素朴」の読み方は？", options: ["そぼく", "そほく", "すぼく", "そがく"], answer: 0, exp: "「素朴（そぼく）」と読みます。" },
+      { q: "大いに「疑問」に思う。\n「疑問」の読み方は？", options: ["ぎもん", "きもん", "ぎもう", "ぎぶん"], answer: 0, exp: "「疑問（ぎもん）」と読みます。" },
+      { q: "励ましの言葉を「投」げかける。\n「投」の読み方は？", options: ["な（げかける）", "とう（げかける）", "の（げかける）", "は（げかける）"], answer: 0, exp: "「投げかける（なげかける）」と読みます。" },
+      { q: "「寛大」な処置を願う。\n「寛大」の読み方は？", options: ["かんだい", "かんたい", "がんだい", "かんない"], answer: 0, exp: "「寛大（かんだい）」と読みます。" },
+      { q: "互いに深く「恋慕」する。\n「恋慕」の読み方は？", options: ["れんぼ", "れんぽ", "こいぼ", "れんも"], answer: 0, exp: "「恋慕（れんぼ）」と読みます。" },
+      { q: "優しい気持ちを「抱」く。\n「抱」の読み方は？", options: ["いだ（く）", "だ（く）", "ほう（く）", "かか（く）"], answer: 0, exp: "「抱く（いだく）」と読みます。" },
+      { q: "通行を「妨」げる。\n「妨」の読み方は？", options: ["さまた（げる）", "さまたげ（る）", "ぼう（げる）", "さだ（める）"], answer: 0, exp: "「妨げる（さまたげる）」と読みます。" },
+      { q: "同じ食事に「飽」きる。\n「飽」の読み方は？", options: ["あ（きる）", "ほう（きる）", "お（きる）", "あき（る）"], answer: 0, exp: "「飽きる（あきる）」と読みます。" },
+      { q: "祖母が大根を「漬」ける。\n「漬」の読み方は？", options: ["つ（ける）", "づ（ける）", "し（ける）", "つけ（る）"], answer: 0, exp: "「漬ける（つける）」と読みます。" },
+      { q: "台風で外出を「控」える。\n「控」の読み方は？", options: ["ひか（える）", "ひかえ（る）", "こう（える）", "そな（える）"], answer: 0, exp: "「控える（ひかえる）」と読みます。" },
+      { q: "テレビの「娯楽」番組。\n「娯楽」の読み方は？", options: ["ごらく", "ごがく", "きらく", "ごうらく"], answer: 0, exp: "「娯楽（ごらく）」と読みます。" },
+      { q: "地名を「誤読」する。\n「誤読」の読み方は？", options: ["ごどく", "ごよみ", "ごうどく", "ごかく"], answer: 0, exp: "「誤読（ごどく）」と読みます。" },
+      { q: "源氏と平氏の「子孫」。\n「子孫」の読み方は？", options: ["しそん", "しぞん", "こまご", "しゅそん"], answer: 0, exp: "「子孫（しそん）」と読みます。" },
+      { q: "何の「遜色」もない。\n「遜色」の読み方は？", options: ["そんしょく", "そんしき", "そしょく", "そんじょく"], answer: 0, exp: "「遜色（そんしょく）」と読みます。" },
+      { q: "陸上部に「勧誘」する。\n「勧誘」の読み方は？", options: ["かんゆう", "かんじゅう", "かんよう", "かんぬう"], answer: 0, exp: "「勧誘（かんゆう）」と読みます。" },
+      { q: "桜を「観賞」する。\n「観賞」の読み方は？", options: ["かんしょう", "かんそう", "がんしょう", "かんじょう"], answer: 0, exp: "「観賞（かんしょう）」と読みます。" },
+      { q: "「原因」が判明する。\n「原因」の読み方は？", options: ["げんいん", "げにん", "げいん", "げんよう"], answer: 0, exp: "「原因（げんいん）」と読みます。" },
+      { q: "「婚姻」届を出す。\n「婚姻」の読み方は？", options: ["こんいん", "こにん", "こんよう", "こんりん"], answer: 0, exp: "「婚姻（こんいん）」と読みます。" }
+    ],
+    kanji_kaki: [
+      { q: "国を「シュクショウ」する。\n「シュクショウ」を漢字にすると？", options: ["縮小", "宿小", "祝小", "塾小"], answer: 0, exp: "「縮小」と書きます。" },
+      { q: "険しい「サンガク」地帯。\n「サンガク」を漢字にすると？", options: ["山岳", "山学", "山額", "山愕"], answer: 0, exp: "「山岳」と書きます。" },
+      { q: "飛行機に「トウジョウ」する。\n「トウジョウ」を漢字にすると？", options: ["搭乗", "登場", "等上", "頭上"], answer: 0, exp: "「搭乗」と書きます。" },
+      { q: "国民に「ゼヒ」を問う。\n「ゼヒ」を漢字にすると？", options: ["是非", "是費", "世非", "背非"], answer: 0, exp: "「是非」と書きます。" },
+      { q: "人生の「カフク」を占う。\n「カフク」を漢字にすると？", options: ["禍福", "過服", "果腹", "寡福"], answer: 0, exp: "「禍福」と書きます。" },
+      { q: "「ケイチョウ」のマナー。\n「ケイチョウ」を漢字にすると？", options: ["慶弔", "軽長", "敬重", "傾聴"], answer: 0, exp: "「慶弔」と書きます。" },
+      { q: "平安京に「セント」する。\n「セント」を漢字にすると？", options: ["遷都", "銭湯", "先途", "先島"], answer: 0, exp: "「遷都」と書きます。" },
+      { q: "大粒の「なみだ」を流す。\n「なみだ」を漢字にすると？", options: ["涙", "波", "浪", "並"], answer: 0, exp: "「涙」と書きます。" },
+      { q: "「シュンソク」の選手。\n「シュンソク」を漢字にすると？", options: ["俊足", "春足", "旬足", "瞬足"], answer: 0, exp: "「俊足」と書きます。" },
+      { q: "「モウケン」注意の張り紙。\n「モウケン」を漢字にすると？", options: ["猛犬", "網犬", "盲犬", "毛犬"], answer: 0, exp: "「猛犬」と書きます。" },
+      { q: "「ショウゾウ」画を飾る。\n「ショウゾウ」を漢字にすると？", options: ["肖像", "小像", "床像", "鐘像"], answer: 0, exp: "「肖像」と書きます。" },
+      { q: "谷川岳に「のぼ」る。\n「のぼ」を漢字にすると？", options: ["登", "上", "昇", "乗"], answer: 0, exp: "「登る」と書きます。" },
+      { q: "死者を「とむら」う。\n「とむら」を漢字にすると？", options: ["弔", "葬", "供", "友"], answer: 0, exp: "「弔う」と書きます。" },
+      { q: "町の「ヘンセン」をたどる。\n「ヘンセン」を漢字にすると？", options: ["変遷", "変船", "辺先", "編線"], answer: 0, exp: "「変遷」と書きます。" },
+      { q: "細かな「リュウシ」が飛ぶ。\n「リュウシ」を漢字にすると？", options: ["粒子", "流子", "竜子", "留子"], answer: 0, exp: "「粒子」と書きます。" },
+      { q: "「モウショ」の夏を迎える。\n「モウショ」を漢字にすると？", options: ["猛暑", "毛暑", "網暑", "盲暑"], answer: 0, exp: "「猛暑」と書きます。" },
+      { q: "「ケンギョウ」農家が多い。\n「ケンギョウ」を漢字にすると？", options: ["兼業", "建業", "見業", "権業"], answer: 0, exp: "「兼業」と書きます。" },
+      { q: "「ノウム」注意報が出る。\n「ノウム」を漢字にすると？", options: ["濃霧", "納夢", "脳務", "農無"], answer: 0, exp: "「濃霧」と書きます。" },
+      { q: "仲の良い「シマイ」に会う。\n「シマイ」を漢字にすると？", options: ["姉妹", "終い", "仕舞", "四枚"], answer: 0, exp: "「姉妹」と書きます。" },
+      { q: "「ゴクジョウ」の素材を使う。\n「ゴクジョウ」を漢字にすると？", options: ["極上", "獄情", "国情", "酷状"], answer: 0, exp: "「極上」と書きます。" },
+      { q: "得がたい「ケイケン」をする。\n「ケイケン」を漢字にすると？", options: ["経験", "敬虔", "計見", "形見"], answer: 0, exp: "「経験」と書きます。" },
+      { q: "校内の「チツジョ」を保つ。\n「チツジョ」を漢字にすると？", options: ["秩序", "窒所", "知所", "秩情"], answer: 0, exp: "「秩序」と書きます。" },
+      { q: "結果を「ヒカク」する。\n「ヒカク」を漢字にすると？", options: ["比較", "皮革", "日角", "非角"], answer: 0, exp: "「比較」と書きます。" },
+      { q: "「ダトウ」な判断と言える。\n「ダトウ」を漢字にすると？", options: ["妥当", "打倒", "堕糖", "多頭"], answer: 0, exp: "「妥当」と書きます。" },
+      { q: "「トウホン」西走の日々。\n「トウホン」を漢字にすると？", options: ["東奔", "当本", "塔本", "頭本"], answer: 0, exp: "「東奔」と書きます。" },
+      { q: "「キド」アイラクが激しい。\n「キド」を漢字にすると？", options: ["喜怒", "木戸", "輝度", "期度"], answer: 0, exp: "「喜怒」と書きます。" },
+      { q: "軽挙「モウドウ」を慎む。\n「モウドウ」を漢字にすると？", options: ["妄動", "猛動", "網堂", "盲動"], answer: 0, exp: "「妄動」と書きます。" },
+      { q: "試験を「メンジョ」する。\n「メンジョ」を漢字にすると？", options: ["免除", "面女", "綿女", "免状"], answer: 0, exp: "「免除」と書きます。" },
+      { q: "練習に「ボットウ」する。\n「ボットウ」を漢字にすると？", options: ["没頭", "没当", "凡頭", "防頭"], answer: 0, exp: "「没頭」と書きます。" },
+      { q: "二つの職を「か」ねる。\n「か」を漢字にすると？", options: ["兼", "金", "化", "果"], answer: 0, exp: "「兼ねる」と書きます。" },
+      { q: "きりで視界が「わる」くなる。\n「わる」を漢字にすると？", options: ["悪", "割", "我", "話"], answer: 0, exp: "「悪くなる」と書きます。" },
+      { q: "あわれな身の上だ。（「あわれ」を漢字に）\n「あわれ」を漢字にすると？", options: ["哀れ", "泡れ", "会われ", "合われ"], answer: 0, exp: "「哀れ」と書きます。" },
+      { q: "「ハンザツ」な作業をこなす。\n「ハンザツ」を漢字にすると？", options: ["煩雑", "反雑", "半雑", "班雑"], answer: 0, exp: "「煩雑」と書きます。" },
+      { q: "「カイゼン」点を挙げる。\n「カイゼン」を漢字にすると？", options: ["改善", "改前", "海前", "開善"], answer: 0, exp: "「改善」と書きます。" },
+      { q: "「カンキョウ」を整える。\n「カンキョウ」を漢字にすると？", options: ["環境", "完教", "間協", "管教"], answer: 0, exp: "「環境」と書きます。" },
+      { q: "事態が「アッカ」する。\n「アッカ」を漢字にすると？", options: ["悪化", "圧化", "空っ化", "有っ果"], answer: 0, exp: "「悪化」と書きます。" },
+      { q: "絶滅が「キグ」される動物。\n「キグ」を漢字にすると？", options: ["危惧", "器具", "奇遇", "木具"], answer: 0, exp: "「危惧」と書きます。" },
+      { q: "世間の注目を「あ」びる。\n「あ」を漢字にすると？", options: ["浴", "悪", "安", "阿"], answer: 0, exp: "「浴びる」と書きます。" },
+      { q: "「ショウサイ」に報告する。\n「ショウサイ」を漢字にすると？", options: ["詳細", "商才", "正妻", "小才"], answer: 0, exp: "「詳細」と書きます。" },
+      { q: "誤りを「シテキ」する。\n「シテキ」を漢字にすると？", options: ["指摘", "私的", "詩的", "史的"], answer: 0, exp: "「指摘」と書きます。" },
+      { q: "皿をきれいに「あら」う。\n「あら」を漢字にすると？", options: ["洗", "粗", "新", "荒"], answer: 0, exp: "「洗う」と書きます。" },
+      { q: "山の「いただ」きが見える。\n「いただ」を漢字にすると？", options: ["頂", "戴", "板", "痛"], answer: 0, exp: "「頂」と書きます。" },
+      { q: "思い出を心に「きざ」む。\n「きざ」を漢字にすると？", options: ["刻", "気障", "兆", "階"], answer: 0, exp: "「刻む」と書きます。" },
+      { q: "「ジンソク」に行動する。\n「ジンソク」を漢字にすると？", options: ["迅速", "人息", "陣速", "神速"], answer: 0, exp: "「迅速」と書きます。" },
+      { q: "くじらが「しお」を噴く。\n「しお」を漢字にすると？", options: ["潮", "塩", "栞", "仕生"], answer: 0, exp: "「潮」と書きます。" },
+      { q: "「トクシカ」が寄付をする。\n「トクシカ」を漢字にすると？", options: ["篤志家", "特使家", "毒鹿", "特司家"], answer: 0, exp: "「篤志家」と書きます。" },
+      { q: "「ユウフク」な暮らし。\n「ユウフク」を漢字にすると？", options: ["裕福", "有福", "遊福", "優福"], answer: 0, exp: "「裕福」と書きます。" },
+      { q: "思い「わずら」うのをやめる。\n「わずら」を漢字にすると？", options: ["煩", "患", "厄", "病"], answer: 0, exp: "「煩う」と書きます。" },
+      { q: "「ゴウジョウ」な妹に困る。\n「ゴウジョウ」を漢字にすると？", options: ["強情", "号状", "合上", "豪状"], answer: 0, exp: "「強情」と書きます。" },
+      { q: "堂々と胸を「は」る。\n「は」を漢字にすると？", options: ["張", "春", "晴", "貼"], answer: 0, exp: "「張る」と書きます。" },
+      { q: "「シャザイ」の意を示す。\n「シャザイ」を漢字にすると？", options: ["謝罪", "車財", "社財", "写材"], answer: 0, exp: "「謝罪」と書きます。" },
+      { q: "「ムリ」な要求をする。\n「ムリ」を漢字にすると？", options: ["無理", "無利", "武里", "務里"], answer: 0, exp: "「無理」と書きます。" },
+      { q: "不自由を「し」いる。\n「し」を漢字にすると？", options: ["強", "四", "死", "仕"], answer: 0, exp: "「強いる」と書きます。" },
+      { q: "みごと「ショウリ」を収める。\n「ショウリ」を漢字にすると？", options: ["勝利", "省利", "小利", "商利"], answer: 0, exp: "「勝利」と書きます。" },
+      { q: "物語に出てくる「めがみ」。\n「めがみ」を漢字にすると？", options: ["女神", "目神", "芽神", "女上"], answer: 0, exp: "「女神」と書きます。" },
+      { q: "「テンニョ」の羽衣。\n「テンニョ」を漢字にすると？", options: ["天女", "天如", "店女", "典女"], answer: 0, exp: "「天女」と書きます。" },
+      { q: "「センモン」的な勉強をする。\n「センモン」を漢字にすると？", options: ["専門", "千問", "先問", "戦門"], answer: 0, exp: "「専門」と書きます。" },
+      { q: "道路を「カクチョウ」する。\n「カクチョウ」を漢字にすると？", options: ["拡張", "角鳥", "確調", "隔丁"], answer: 0, exp: "「拡張」と書きます。" },
+      { q: "ピアノを「エンソウ」する。\n「エンソウ」を漢字にすると？", options: ["演奏", "遠想", "円相", "宴装"], answer: 0, exp: "「演奏」と書きます。" },
+      { q: "「はつこい」の思い出。\n「はつこい」を漢字にすると？", options: ["初恋", "発恋", "初濃", "初乞"], answer: 0, exp: "「初恋」と書きます。" },
+      { q: "兄のように「した」う。\n「した」を漢字にすると？", options: ["慕", "下", "舌", "親"], answer: 0, exp: "「慕う」と書きます。" },
+      { q: "進路を「ボウガイ」しない。\n「ボウガイ」を漢字にすると？", options: ["妨害", "棒外", "忘害", "某街"], answer: 0, exp: "「妨害」と書きます。" },
+      { q: "「ホウワ」状態になる。\n「ホウワ」を漢字にすると？", options: ["飽和", "宝和", "包和", "放話"], answer: 0, exp: "「飽和」と書きます。" },
+      { q: "客に席を「すす」める。\n「すす」を漢字にすると？", options: ["勧", "進", "薦", "鈴"], answer: 0, exp: "「勧める」と書きます。" }
+    ],
+    doushi1: [
+      { q: "次の単語の中から、動詞を選びなさい。", options: ["泣く", "悲しい", "学校", "静かだ"], answer: 0, exp: "動詞はウ段の音で言い切る言葉です。「泣く」が該当します。「悲しい」は形容詞、「学校」は名詞、「静かだ」は形容動詞です。" },
+      { q: "次の動詞の中から、五段活用の動詞を選びなさい。", options: ["する", "思う", "食べる", "話す"], answer: 1, exp: "五段活用は語尾がアイウエオ段に変化します。『思わない』『思います』と変化するため『思う』が正解です。" },
+      { q: "「妹の笑う声が聞こえる。」の『笑う』の活用形を答えなさい。", options: ["未然形", "連用形", "終止形", "連体形"], answer: 3, exp: "あとに「声」という体言（名詞）が続いているため、連体形です。" },
+      { q: "「みんなと仲よく遊べ。」の『遊べ』の活用形を答えなさい。", options: ["連用形", "終止形", "仮定形", "命令形"], answer: 3, exp: "言い切りで命令の意味を表しているため、命令形です。" },
+      { q: "動詞の連用形に「た」「て」などが付くとき、活用語尾の音が変化することを何といいますか？", options: ["音便", "可能動詞", "補助動詞", "自動詞"], answer: 0, exp: "連用形に「た」「て」などが付くときに起こる音の変化を『音便』といいます（例：書きて→書いて（イ音便））。" },
+      { q: "「『何を』という対象を表す言葉を必要とする動詞」を何といいますか？", options: ["自動詞", "他動詞", "可能動詞", "補助動詞"], answer: 1, exp: "「〜を」という対象を必要とする動詞を『他動詞』といいます。" },
+      { q: "次の文のうち、『自動詞』が使われているものはどちらですか？", options: ["人がたくさん集まる", "人をたくさん集める"], answer: 0, exp: "「集まる」は『何を』を必要としない自動詞です。「集める」は『人を』という対象を必要とするため他動詞です。" },
+      { q: "次の文中の可能動詞はどれですか。「頂上に行けば、ゆっくり休めるよ。」", options: ["行け", "休める", "ゆっくり"], answer: 1, exp: "可能動詞は「〜できる」という可能の意味を表す動詞です。「休む」の可能動詞が「休める」です。" },
+      { q: "次の文中の補助動詞はどれですか。「きれいな花が咲いている。」", options: ["きれいな", "咲いて", "いる"], answer: 2, exp: "補助動詞は、動詞本来の意味が薄れ、補助の働きをする動詞です。ここでは「いる」が該当します。" }
+    ],
+    doushi2: [
+      { q: "次の動詞の中から、上一段活用の動詞を選びなさい。", options: ["聞く", "食べる", "信じる", "書く"], answer: 2, exp: "「信じる」は「信じない」「信じます」と『イ段』の音だけで変化するため、上一段活用です。" },
+      { q: "次の動詞の中から、下一段活用の動詞を選びなさい。", options: ["起きる", "答える", "歩く", "見る"], answer: 1, exp: "「答える」は「答えない」「答えます」と『エ段』の音だけで変化するため、下一段活用です。" },
+      { q: "「起きる」を『ない』に続く形（未然形）に活用させなさい。", options: ["起き（ない）", "起きら（ない）", "起きれ（ない）", "起きろ（ない）"], answer: 0, exp: "上一段活用「起きる」の未然形は「起き」です（起きない）。" },
+      { q: "「受ける」を『とき』に続く形（連体形）に活用させなさい。", options: ["受け（とき）", "受ける（とき）", "受けれ（とき）", "受けろ（とき）"], answer: 1, exp: "下一段活用「受ける」の連体形は「受ける」です（受けるとき）。" },
+      { q: "カ行変格活用（カ変）の動詞は、次のうちどれですか？", options: ["来る", "する", "書く", "起きる"], answer: 0, exp: "カ行変格活用の動詞は「来る」の一語だけです。" },
+      { q: "サ行変格活用（サ変）の動詞は、「する」ともう一つどのようなものがありますか？", options: ["『来る』の一語だけ", "名詞 ＋『する』など（例：運動する）", "可能動詞", "補助動詞"], answer: 1, exp: "サ行変格活用は「する」と、「運動する」などの『名詞＋する』などの形があります。" },
+      { q: "「来る」を『ない』に続く形（未然形）に活用させなさい。", options: ["き（ない）", "くる（ない）", "こ（ない）", "こら（ない）"], answer: 2, exp: "カ行変格活用「来る」の未然形は「こ」です（こない）。" },
+      { q: "「勉強（　　）ばわかる。」空欄に入る『する』の適切な活用形はどれですか？", options: ["しれ", "すれ", "せれ", "され"], answer: 1, exp: "サ行変格活用「する」の仮定形は「すれ」です（勉強すれば）。" }
+    ],
+    jukugo: [
+      { q: "「洗顔」という熟語の構成として正しいものはどれ？", options: ["意味が似ている漢字の組み合わせ", "下の漢字が上の漢字の目的や対象を示す", "上の漢字が下の漢字を修飾する", "主語と述語の関係"], answer: 1, exp: "「洗顔」は「顔（対象）を洗う」という関係になります。" },
+      { q: "「軽傷」は「上の漢字が下の漢字を修飾する」構成です。では、「主語と述語の関係」にあたる熟語はどれ？", options: ["善悪", "拡大", "日照", "逆流"], answer: 2, exp: "「日照」は「日が照る」と読めるため、主語と述語の関係です。「善悪」は対になる意味、「拡大」は似た意味の組み合わせです。" },
+      { q: "上に打ち消しの意味を持つ漢字が付く三字熟語があります。この打ち消しの意味を持つ漢字として当てはまらないものはどれ？", options: ["的", "不", "未", "無"], answer: 0, exp: "打ち消しの意味を持つのは「不・無・非・未」などです。「的」は「絶対的」などのように言葉の下に付く漢字です。" },
+      { q: "「春夏秋冬」という四字熟語の構成として正しい説明はどれ？", options: ["漢字一字の言葉の組み合わせ", "二字熟語の組み合わせ", "漢字一字の言葉と二字熟語の組み合わせ", "同じ意味の漢字を重ねたもの"], answer: 0, exp: "「春・夏・秋・冬」という漢字一字の言葉が組み合わさっています。" }
+    ],
+    kumazemi: [
+      { q: "大阪府内の都市部でクマゼミが増加したことと、冬の寒さの緩和には、どのような関係がありましたか？", options: ["気温上昇と重なって大きな関係があった", "検証の範囲では関連が認められなかった", "アブラゼミを減らす要因になっていた", "直接的な原因であった"], answer: 1, exp: "文章中には、「冬の寒さの緩和は関係がなかった」と明記されています。" },
+      { q: "地表の整備によって土が硬くなった環境で、クマゼミが生き残った理由は何ですか？", options: ["他のセミが減る一方で、クマゼミだけが土に潜らずに生きられたから", "クマゼミは硬い土に潜る能力が圧倒的に高かったから", "ヒートアイランド現象により地表が暖かくなったから", "乾燥に強い性質があったから"], answer: 1, exp: "他のセミが硬い土に潜れなくなる中、クマゼミは硬い土に潜る能力が圧倒的に高かったと実験で証明されています。" },
+      { q: "筆者は、生物の数や分布の変化について結論を得るために、何が必要だと述べていますか？", options: ["地表の整備と気温上昇の二点だけを関連づけること", "短期間で直感的に原因を決めること", "何年もの間、実験や観察を重ねること", "過去のデータのみを分析すること"], answer: 2, exp: "生物の変化は簡単に一つに関連づけて語られがちですが、結論を得るには何年もの間、実験や観察を重ねる必要があるとまとめられています。" }
+    ],
+    tanka: [
+      { q: "短歌は、基本としていくつの音から成り立っている詩ですか？", options: ["五・七・五・七・七の三十一音", "五・七・五の十七音", "五・七・七の十九音", "七・七・七・五の二十六音"], answer: 0, exp: "短歌は、五・七・五・七・七の三十一音の定型を持つ日本の詩です。" },
+      { q: "次の短歌の作者は誰ですか？\n「鯨の世紀恐竜の世紀いづれにも戻れぬ地球の水仙の白」", options: ["俵万智", "馬場あき子", "栗木京子", "正岡子規"], answer: 1, exp: "「鯨の世紀〜」の作者は馬場あき子です。ちなみに俵万智は「蛇行する川には〜」の作者です。" },
+      { q: "俵万智の短歌「蛇行する川には蛇行の理由あり急げばいいってもんじゃないよと」について。曲がりくねったり寄り道したりするのには「何がある」と詠んでいますか？", options: ["必ず理由のあること", "人間の未来に対する不安", "早く進むためのヒント", "無駄な時間"], answer: 0, exp: "蛇行すること（寄り道など）には「必ず理由のあることなのだ」と、生きることとの重なり合いに気づいたことが解説されています。" }
+    ]
+  };
+
+  const MODE_NAMES = {
+    kanji_yomi: `<i data-lucide="type" class="icon-sm"></i> 漢字の読み`,
+    kanji_kaki: `<i data-lucide="pen-tool" class="icon-sm"></i> 漢字の書き`,
+    doushi1: `<i data-lucide="split-square-horizontal" class="icon-sm"></i> 動詞の活用(1)`,
+    doushi2: `<i data-lucide="git-merge" class="icon-sm"></i> 動詞の活用(2)(3)`,
+    jukugo: `<i data-lucide="blocks" class="icon-sm"></i> 熟語の構成`,
+    kumazemi: `<i data-lucide="microscope" class="icon-sm"></i> クマゼミ`,
+    tanka: `<i data-lucide="feather" class="icon-sm"></i> 短歌に親しむ`
+  };
+
+  class SoundFX {
+    constructor() { this.enabled = true; this.ctx = null; }
+    init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    playTone(freq, type, duration, delay = 0) {
+      if (!this.enabled) return;
+      this.init();
+      setTimeout(() => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + duration);
+      }, delay * 1000);
+    }
+    correct() { this.playTone(659.25, "sine", 0.15, 0); this.playTone(880.00, "sine", 0.3, 0.1); }
+    wrong() { this.playTone(329.63, "triangle", 0.2, 0); this.playTone(246.94, "triangle", 0.3, 0.15); }
+    fanfare() {
+      if (!this.enabled) return;
+      this.playTone(523.25, "sine", 0.1, 0); this.playTone(659.25, "sine", 0.1, 0.1);    
+      this.playTone(783.99, "sine", 0.1, 0.2); this.playTone(1046.50, "triangle", 0.5, 0.3);
+    }
+  }
+  const sfx = new SoundFX();
+  const soundBtn = document.getElementById("soundToggleBtn");
+  const soundIcon = document.getElementById("soundIcon");
+  soundBtn.addEventListener("click", () => {
+    sfx.enabled = !sfx.enabled;
+    soundIcon.setAttribute("data-lucide", sfx.enabled ? "volume-2" : "volume-x");
+    lucide.createIcons();
+  });
+
+  let confettiAnimId = null;
+  function launchConfetti() {
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+    const colors = ["#4F46E5", "#10B981", "#F59E0B", "#F43F5E", "#38BDF8"];
+    const particles = Array.from({ length: 60 }).map(() => ({
+      x: canvas.width / 2 + (Math.random() * 40 - 20),
+      y: canvas.height * 0.3,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -Math.random() * 10 - 4,
+      size: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rSpeed: (Math.random() - 0.5) * 10,
+      opacity: 1,
+      gravity: 0.3
+    }));
+
+    if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+    function frame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.vx *= 0.98; p.rotation += p.rSpeed;
+        if (p.y > canvas.height * 0.4) p.opacity -= 0.015;
+        if (p.opacity > 0 && p.y < canvas.height) {
+          alive = true;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.translate(p.x, p.y); ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        }
+      });
+      if (alive) confettiAnimId = requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    confettiAnimId = requestAnimationFrame(frame);
+  }
+
+  const customModal = document.getElementById("customModal");
+  let modalConfirmCb = null, modalCancelCb = null;
+  function showModal(title, message, confirmText, onConfirm, onCancel = null) {
+    document.getElementById("modalTitle").textContent = title;
+    document.getElementById("modalMessage").textContent = message;
+    document.getElementById("modalConfirmBtn").textContent = confirmText;
+    modalConfirmCb = onConfirm; modalCancelCb = onCancel;
+    customModal.classList.add("active");
+  }
+  function hideModal() { customModal.classList.remove("active"); modalConfirmCb = modalCancelCb = null; }
+  document.getElementById("modalCancelBtn").addEventListener("click", () => { if (modalCancelCb) modalCancelCb(); hideModal(); });
+  document.getElementById("modalConfirmBtn").addEventListener("click", () => { if (modalConfirmCb) modalConfirmCb(); hideModal(); });
+
+  let selectedMode = "kanji_yomi";
+  let selectedCount = 5;
+  let isRetire = false;
+  let currentQuestions = [], currentIndex = 0, score = 0, wrongCount = 0, userHistory = [];
+  let questionTimer = null, timeoutCount = 0;
+
+  document.querySelectorAll(".mode-card").forEach(card => {
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".mode-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      selectedMode = card.dataset.mode;
+    });
+  });
+  document.querySelectorAll(".count-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".count-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedCount = btn.dataset.count === "all" ? "all" : parseInt(btn.dataset.count);
+    });
+  });
+
+  const screens = {
+    start: document.getElementById("startScreen"),
+    quiz: document.getElementById("quizScreen"),
+    result: document.getElementById("resultScreen")
+  };
+  function switchScreen(id) {
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[id].classList.add("active");
+  }
+
+  document.getElementById("startBtn").addEventListener("click", () => {
+    const rawList = QUESTION_BANK[selectedMode];
+    const shuffled = shuffle(rawList);
+    const count = selectedCount === "all" ? shuffled.length : Math.min(selectedCount, shuffled.length);
+    currentQuestions = shuffled.slice(0, count);
+
+    currentIndex = score = wrongCount = timeoutCount = 0;
+    userHistory = []; isRetire = false;
+
+    document.getElementById("quizModeBadge").innerHTML = MODE_NAMES[selectedMode];
+    document.getElementById("trackCorrect").textContent = "0";
+    document.getElementById("trackWrong").textContent = "0";
+    document.getElementById("totalQNum").textContent = currentQuestions.length;
+
+    switchScreen('quiz');
+    lucide.createIcons();
+    loadQuestion();
+  });
+
+  document.getElementById("retireBtn").addEventListener("click", () => {
+    clearTimeout(questionTimer);
+    if (userHistory.length === 0) {
+      showModal("終了しますか？", "まだ1問も解答していません。\nトップ画面に戻ります。", "トップへ戻る", 
+        () => switchScreen('start'), () => { questionTimer = setTimeout(handleTimeout, 45000); });
+    } else {
+      showModal("終了しますか？", "ここで終了して、\n現在までの成績で結果を見ますか？", "結果を見る", 
+        () => { isRetire = true; showResults(); }, () => { questionTimer = setTimeout(handleTimeout, 45000); });
+    }
+  });
+
+  function loadQuestion() {
+    clearTimeout(questionTimer);
+    const q = currentQuestions[currentIndex];
+    
+    document.getElementById("currentQNum").textContent = currentIndex + 1;
+    document.getElementById("progressFill").style.width = `${(currentIndex / currentQuestions.length) * 100}%`;
+    document.getElementById("questionText").textContent = q.q;
+    
+    const optsContainer = document.getElementById("optionsContainer");
+    optsContainer.innerHTML = "";
+    document.getElementById("feedbackBox").style.display = "none";
+    document.getElementById("nextBtn").style.display = "none";
+
+    let shuffledOptions = shuffle(q.options.map((opt, idx) => ({ text: opt, originalIdx: idx })));
+    const correctIdx = shuffledOptions.findIndex(o => o.originalIdx === q.answer);
+
+    shuffledOptions.forEach((optObj, displayIdx) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="option-num">${displayIdx + 1}</span> <span>${optObj.text}</span>`;
+      btn.addEventListener("click", () => handleAnswer(displayIdx, correctIdx, false));
+      optsContainer.appendChild(btn);
+    });
+
+    questionTimer = setTimeout(handleTimeout, 45000);
+  }
+
+  function handleTimeout() {
+    timeoutCount++;
+    if (timeoutCount >= 3) switchScreen('start');
+    else handleAnswer(-1, -1, true); 
+  }
+
+  function handleAnswer(selectedIndex, correctIndex, isTimeout) {
+    clearTimeout(questionTimer);
+    if (!isTimeout) timeoutCount = 0;
+
+    const q = currentQuestions[currentIndex];
+    const isCorrect = selectedIndex === correctIndex;
+    const buttons = document.getElementById("optionsContainer").querySelectorAll(".option-btn");
+
+    buttons.forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === correctIndex) {
+        btn.classList.add("correct");
+        if (isCorrect) btn.classList.add("anim-correct-shine");
+      } else if (idx === selectedIndex) {
+        btn.classList.add("wrong");
+      }
+    });
+
+    const fbStatus = document.getElementById("feedbackStatus");
+    if (isCorrect && !isTimeout) {
+      score++; document.getElementById("trackCorrect").textContent = score; sfx.correct();
+      fbStatus.innerHTML = `<i data-lucide="check-circle-2" class="icon-md"></i> 正解！`;
+      fbStatus.className = "feedback-status is-correct";
+    } else {
+      wrongCount++; document.getElementById("trackWrong").textContent = wrongCount; sfx.wrong();
+      fbStatus.innerHTML = isTimeout ? `<i data-lucide="clock" class="icon-md"></i> 時間切れ` : `<i data-lucide="x-circle" class="icon-md"></i> 不正解...`;
+      fbStatus.className = "feedback-status is-wrong";
+    }
+    
+    userHistory.push({ q: q.q, isCorrect, ans: q.options[q.answer], exp: q.exp });
+    document.getElementById("feedbackText").textContent = q.exp;
+    document.getElementById("feedbackBox").style.display = "block";
+    document.getElementById("nextBtn").style.display = "flex";
+    lucide.createIcons();
+  }
+
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    currentIndex++;
+    if (currentIndex < currentQuestions.length) loadQuestion();
+    else showResults();
+  });
+
+  function showResults() {
+    switchScreen('result');
+    const total = currentQuestions.length;
+    const rate = total === 0 ? 0 : Math.round((score / total) * 100);
+
+    document.getElementById("finalScorePercent").textContent = rate;
+    document.getElementById("finalScoreNum").textContent = score;
+    document.getElementById("finalScoreTotal").textContent = total;
+
+    const rankBadge = document.getElementById("rankBadge");
+    const resTitle = document.getElementById("resultTitle");
+    const resDesc = document.getElementById("resultDesc");
+    
+    rankBadge.style.animation = 'none';
+    rankBadge.offsetHeight;
+    rankBadge.style.animation = null;
+
+    rankBadge.className = "rank-display";
+    if (isRetire) {
+      rankBadge.textContent = "-";
+      rankBadge.classList.add("rank-c");
+      resTitle.textContent = "途中終了";
+      resDesc.textContent = "次回は最後まで挑戦してみましょう。";
+    } else if (rate === 100) {
+      rankBadge.textContent = "S";
+      rankBadge.classList.add("rank-s");
+      resTitle.textContent = "Perfect!";
+      resDesc.textContent = "全問正解！完璧な理解度です。";
+      launchConfetti(); sfx.fanfare();
+    } else if (rate >= 80) {
+      rankBadge.textContent = "A";
+      rankBadge.classList.add("rank-a");
+      resTitle.textContent = "Great!";
+      resDesc.textContent = "素晴らしい成績です！しっかり定着しています。";
+    } else if (rate >= 50) {
+      rankBadge.textContent = "B";
+      rankBadge.classList.add("rank-b");
+      resTitle.textContent = "Good";
+      resDesc.textContent = "合格ライン！復習リストで弱点を補強しましょう。";
+    } else {
+      rankBadge.textContent = "C";
+      rankBadge.classList.add("rank-c");
+      resTitle.textContent = "Try Again";
+      resDesc.textContent = "解説を読んで、基礎からもう一度見直しましょう。";
+    }
+
+    const reviewBox = document.getElementById("reviewContainer");
+    reviewBox.innerHTML = `<div style="font-weight:700; margin-bottom:16px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;"><i data-lucide="history" class="icon-sm" style="margin-right:6px;"></i>Review List</div>`;
+    
+    userHistory.forEach((h, i) => {
+      const item = document.createElement("div");
+      item.className = "review-item";
+      const icon = h.isCorrect ? 'check' : 'x';
+      const colorCls = h.isCorrect ? 'tracker-correct' : 'tracker-wrong';
+      item.innerHTML = `
+        <div class="review-q">
+          <span class="${colorCls}" style="flex-shrink:0;"><i data-lucide="${icon}" class="icon-sm"></i></span>
+          <span>Q${i + 1}. ${h.q}</span>
+        </div>
+        <div class="review-ans">正解: ${h.ans}</div>
+        <div class="review-exp">${h.exp}</div>
+      `;
+      reviewBox.appendChild(item);
+    });
+    
+    lucide.createIcons();
+  }
+
+  document.getElementById("retryBtn").addEventListener("click", () => switchScreen('start'));
+  lucide.createIcons();
+</script>
+</body>
+</html>
