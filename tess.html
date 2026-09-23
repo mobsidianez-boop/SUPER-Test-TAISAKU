@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyDash - 限界突破ボリューム版</title>
+<style>
+  :root {
+    --primary: #4A90E2;
+    --primary-dark: #357ABD;
+    --bg-color: #F4F7F6;
+    --card-bg: #FFFFFF;
+    --text-main: #333333;
+    --text-muted: #777777;
+    --success: #2ECC71;
+    --danger: #E74C3C;
+  }
+  
+  body {
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .dashboard {
+    background: var(--card-bg);
+    width: 90%;
+    max-width: 650px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+
+  .header {
+    background: var(--primary);
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+  }
+  .header p {
+    margin: 5px 0 0 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+
+  .content-area {
+    padding: 30px;
+  }
+
+  /* メニュー画面 */
+  #menu-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .form-group label {
+    font-weight: bold;
+    color: var(--primary-dark);
+  }
+  select {
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #E0E0E0;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s;
+    background-color: #FAFAFA;
+  }
+  select:focus {
+    border-color: var(--primary);
+  }
+  
+  .btn {
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+    margin-top: 10px;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+  }
+
+  /* クイズ画面 */
+  #quiz-screen, #result-screen {
+    display: none;
+  }
+  
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: var(--text-muted);
+  }
+  
+  .question-text {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-weight: bold;
+  }
+  
+  .options-grid {
+    display: grid;
+    gap: 12px;
+  }
+  
+  .option-btn {
+    padding: 15px;
+    font-size: 1.05rem;
+    background: #F8F9FA;
+    border: 2px solid #E0E0E0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    word-break: break-all;
+  }
+  .option-btn:hover {
+    background: #EAF2F8;
+    border-color: var(--primary);
+  }
+  .option-btn.correct {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+  }
+  .option-btn.wrong {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+  }
+
+  /* 結果画面 */
+  .result-box {
+    text-align: center;
+  }
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 auto 20px auto;
+  }
+  .result-details {
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <div class="header">
+    <h1>StudyDash</h1>
+    <p>🔥 限界突破！全53問フル収録版 🔥</p>
+  </div>
+
+  <div class="content-area">
+    <!-- メニュー画面 -->
+    <div id="menu-screen">
+      <div class="form-group">
+        <label for="subject-select">📚 教科</label>
+        <select id="subject-select">
+          <option value="" disabled selected>教科を選択してください</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="category-select">🔖 区分</label>
+        <select id="category-select" disabled>
+          <option value="" disabled selected>先に教科を選んでください</option>
+        </select>
+      </div>
+      <button class="btn" id="start-btn" disabled>ダッシュ開始！ 🚀</button>
+    </div>
+
+    <!-- クイズ画面 -->
+    <div id="quiz-screen">
+      <div class="quiz-header">
+        <span id="current-category-label">カテゴリ名</span>
+        <span id="progress-label">Q 1/5</span>
+      </div>
+      <div class="question-text" id="question-text">
+        問題文がここに入ります。
+      </div>
+      <div class="options-grid" id="options-grid">
+      </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-screen">
+      <div class="result-box">
+        <h2>トレーニング完了！</h2>
+        <div class="score-circle" id="score-display">100%</div>
+        <div class="result-details" id="result-details">全10問中 8問正解</div>
+        <p id="feedback-msg" style="font-weight:bold; margin-bottom: 20px;">よくできました！</p>
+        <button class="btn" style="width: 100%;" onclick="returnToMenu()">メニューに戻る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 画像から読み取れる限りの全問題を収録した特大データ
+const studyData = {
+  "国語": {
+    "漢字・四字熟語": [
+      { q: "「相殺」の正しい読み方は？", options: ["そうさつ", "そうさい", "あいさつ", "そうせつ"], answer: "そうさい" },
+      { q: "「脆弱」の正しい読み方は？", options: ["きじゃく", "ぜいじゃく", "ひんじゃく", "ききょう"], answer: "ぜいじゃく" },
+      { q: "「汎用」の正しい読み方は？", options: ["ぼんよう", "はんよう", "ひろよう", "へんよう"], answer: "はんよう" },
+      { q: "「〇〇暗躍」 〇〇に入る言葉は？", options: ["一喜", "東奔", "暗中", "絶体"], answer: "暗中" },
+      { q: "「〇〇同舟」 〇〇に入る言葉は？", options: ["呉越", "意気", "大同", "孤軍"], answer: "呉越" }
+    ]
+  },
+  "社会（地理）": {
+    "1. 農林水産業・工業": [
+      { q: "大都市の周辺で、消費地が近いことを生かして野菜などをつくる農業は？", options: ["近郊農業", "促成栽培", "抑制栽培", "二毛作"], answer: "近郊農業" },
+      { q: "暖かい気候を生かし、出荷時期を早める栽培方法は？", options: ["促成栽培", "抑制栽培", "近郊農業", "温室栽培"], answer: "促成栽培" },
+      { q: "涼しい気候を生かし、出荷時期を遅らせる栽培方法は？", options: ["抑制栽培", "促成栽培", "近郊農業", "二期作"], answer: "抑制栽培" },
+      { q: "国内で消費する食料のうち、国内産でまかなえる割合を何というか？", options: ["食料自給率", "農業就業率", "国内総生産", "エンゲル係数"], answer: "食料自給率" },
+      { q: "陸から遠く離れた海域で行う漁業は？", options: ["遠洋漁業", "沖合漁業", "沿岸漁業", "栽培漁業"], answer: "遠洋漁業" },
+      { q: "陸からやや離れた海域で行う漁業は？", options: ["沖合漁業", "遠洋漁業", "沿岸漁業", "養殖業"], answer: "沖合漁業" },
+      { q: "卵からかえした稚魚を海や川に放し、大きくなってからとる漁業は？", options: ["栽培漁業", "養殖業", "遠洋漁業", "沖合漁業"], answer: "栽培漁業" },
+      { q: "魚や貝などを網やいけすの中で人工的に育てる漁業は？", options: ["養殖業", "栽培漁業", "遠洋漁業", "沖合漁業"], answer: "養殖業" },
+      { q: "かつて日本の主要産業であったが、安い輸入品が増加して低迷している産業は？", options: ["林業", "水産業", "工業", "鉱業"], answer: "林業" },
+      { q: "1970年代以降、内陸部に工場が増え発達した工業は、輸送機械と何か？", options: ["電気機械工業", "鉄鋼工業", "繊維工業", "石油化学工業"], answer: "電気機械工業" },
+      { q: "日本の工業地帯・地域が、関東地方から九州地方北部にかけて帯状に連なっている地域を何というか？", options: ["太平洋ベルト", "中京工業地帯", "瀬戸内工業地域", "阪神工業地帯"], answer: "太平洋ベルト" },
+      { q: "外国との貿易において、輸出と輸入のバランスが崩れることで生じる問題を何というか？", options: ["貿易摩擦", "関税問題", "経済制裁", "情報格差"], answer: "貿易摩擦" },
+      { q: "賃金の安い労働力を求めて日本企業が海外に工場を移したことで、国内の産業が衰退してしまう現象は？", options: ["産業の空洞化", "ドーナツ化現象", "過疎化", "貿易摩擦"], answer: "産業の空洞化" },
+      { q: "石炭、原油、鉄鉱石など、工業の原料やエネルギーとなる資源をまとめて何というか？", options: ["鉱産資源", "化石燃料", "地下資源", "天然ガス"], answer: "鉱産資源" },
+      { q: "太陽光や風力など、繰り返し利用できるエネルギーを何というか？", options: ["再生可能エネルギー", "火力エネルギー", "原子力エネルギー", "バイオマス"], answer: "再生可能エネルギー" },
+      { q: "日本がクウェートやサウジアラビアなどの中東から多く輸入しているエネルギー資源は？", options: ["原油", "石炭", "鉄鉱石", "天然ガス"], answer: "原油" },
+      { q: "化石燃料を燃やして発電し、現在日本の発電量の多くを占める発電方法は？", options: ["火力発電", "水力発電", "原子力発電", "地熱発電"], answer: "火力発電" }
+    ],
+    "2. 第3次産業・交通・通信": [
+      { q: "情報通信技術のことをアルファベット3文字で何というか？", options: ["ICT", "GDP", "NPO", "GPS"], answer: "ICT" },
+      { q: "第3次産業のうち、小売業や卸売業などが含まれるのは何業か？", options: ["商業", "サービス業", "建設業", "製造業"], answer: "商業" },
+      { q: "第3次産業のうち、宿泊や飲食、教育などが含まれるのは何業か？", options: ["サービス業", "商業", "金融業", "運輸業"], answer: "サービス業" },
+      { q: "少子高齢化に伴い、第3次産業の中で働く人が増えている分野は？", options: ["医療・福祉", "建設・土木", "金融・保険", "農林・水産"], answer: "医療・福祉" },
+      { q: "北海道や沖縄県で特に盛んな第3次産業は？", options: ["観光産業", "金融業", "IT産業", "不動産業"], answer: "観光産業" },
+      { q: "農林漁業者が、農水産物の生産だけでなく、自ら加工や流通・販売まで行う取り組みを何というか？", options: ["6次産業化", "第1次産業化", "第2次産業化", "第3次産業化"], answer: "6次産業化" },
+      { q: "原油や鉄鉱石、自動車など「重くてかさばるもの」の輸送に適しているのは？", options: ["船舶（船）", "自動車", "鉄道", "航空機"], answer: "船舶（船）" },
+      { q: "IC（集積回路）や生鮮食品など「軽くて高価なもの」の輸送に適しているのは？", options: ["航空機", "自動車", "鉄道", "船舶（船）"], answer: "航空機" },
+      { q: "コンテナ船などの大型船で原油などを輸送することの利点は？", options: ["一度に大量に安く運べる", "最も早く目的地に着く", "天候の影響を全く受けない", "ドア・ツー・ドアで運べる"], answer: "一度に大量に安く運べる" },
+      { q: "インターネットなどの情報通信網を利用できる人とできない人の間に生じる不利益の差を何というか？", options: ["情報格差", "過密問題", "産業の空洞化", "通信制限"], answer: "情報格差" },
+      { q: "日本を7つの地方に区分するとき、愛知県が属するのは何地方か？", options: ["中部地方", "近畿地方", "関東地方", "中国・四国地方"], answer: "中部地方" },
+      { q: "日本を7つの地方に区分するとき、大阪府が属するのは何地方か？", options: ["近畿地方", "中部地方", "中国・四国地方", "九州地方"], answer: "近畿地方" }
+    ],
+    "3. 九州地方（自然・農業）": [
+      { q: "九州の北西部に連なる、湾と岬が複雑に入り組んだ海岸地形を何というか？", options: ["リアス海岸", "砂浜海岸", "サンゴ礁", "フィヨルド"], answer: "リアス海岸" },
+      { q: "阿蘇山にみられる、火山の噴火によってできた大きなくぼ地を何というか？", options: ["カルデラ", "火口湖", "盆地", "扇状地"], answer: "カルデラ" },
+      { q: "南西諸島の浅くきれいな海に見られ、観光客を集める要因にもなっている地形は？", options: ["サンゴ礁", "マングローブ", "干潟", "カルスト地形"], answer: "サンゴ礁" },
+      { q: "九州地方の南から太平洋側を北上する、温暖な気候をもたらす暖流は何か？", options: ["黒潮（日本海流）", "親潮（千島海流）", "対馬海流", "リマン海流"], answer: "黒潮（日本海流）" },
+      { q: "黒潮から分かれ、対馬海峡を通って日本海側を北上する暖流は何か？", options: ["対馬海流", "黒潮（日本海流）", "親潮（千島海流）", "リマン海流"], answer: "対馬海流" },
+      { q: "九州南部などに広がる、火山灰が降り積もってできた水もちの悪い台地を何というか？", options: ["シラス台地", "関東ローム層", "洪積台地", "カルスト台地"], answer: "シラス台地" },
+      { q: "宮崎平野などで盛んな、温暖な気候を生かしてピーマンなどの出荷時期を早める栽培は？", options: ["促成栽培", "抑制栽培", "近郊農業", "二期作"], answer: "促成栽培" },
+      { q: "シラス台地などで行われている、豚や肉牛、鶏などを飼育する農業は？", options: ["畜産業", "酪農", "放牧", "養蚕"], answer: "畜産業" },
+      { q: "筑紫平野などでみられる、同じ土地で1年に米と麦など2種類の作物を育てることを何というか？", options: ["二毛作", "二期作", "輪作", "単作"], answer: "二毛作" },
+      { q: "夏の終わりから秋にかけて九州地方に多く接近し、強風や大雨の被害をもたらす自然災害は？", options: ["台風", "梅雨", "やませ", "季節風"], answer: "台風" },
+      { q: "桜島の周辺などで、火山灰や噴石から身を守るために設置されているものは？", options: ["退避壕（シェルター）", "防風林", "防潮堤", "ビニールハウス"], answer: "退避壕（シェルター）" },
+      { q: "九州地方が冬でも比較的温暖な理由は、南にあることと何の影響か？", options: ["暖流", "寒流", "季節風", "偏西風"], answer: "暖流" },
+      { q: "火山の地熱を利用して地下の蒸気を取り出し、タービンを回して行う発電方法は？", options: ["地熱発電", "火力発電", "原子力発電", "水力発電"], answer: "地熱発電" }
+    ],
+    "4. 九州地方（工業・沖縄）": [
+      { q: "1901年に建設され、北九州工業地帯が形成されるきっかけとなった官営の工場は？", options: ["八幡製鉄所", "富岡製糸場", "トヨタ自動車", "造船所"], answer: "八幡製鉄所" },
+      { q: "第二次世界大戦後、九州地方の空港や高速道路の周辺に多く建設された工場は何か？", options: ["IC（集積回路）工場", "鉄鋼工場", "自動車工場", "石油化学工場"], answer: "IC（集積回路）工場" },
+      { q: "IC（集積回路）が九州の空港近くで生産される理由の一つは、製品が軽くて何だからか？", options: ["高価", "大きい", "壊れにくい", "安い"], answer: "高価" },
+      { q: "現在の北九州工業地帯の中心として盛んな工業は、鉄鋼業と何か？", options: ["自動車工業", "繊維工業", "造船業", "精密機械工業"], answer: "自動車工業" },
+      { q: "福岡県にあり、古くから中国や韓国などアジアとの交流の窓口として発展してきた港町は？", options: ["博多", "長崎", "門司", "鹿児島"], answer: "博多" },
+      { q: "かつて沖縄県にあった、独自の文化を持つ王国を何というか？", options: ["琉球王国", "大和朝廷", "邪馬台国", "蝦夷"], answer: "琉球王国" },
+      { q: "沖縄県の伝統的な住宅で、家の周りを石垣で囲んだり、屋根を低くしたりするのは何から家を守るためか？", options: ["台風", "雪", "火山灰", "地震"], answer: "台風" },
+      { q: "沖縄県の産業のうち、美しい海などの自然を生かして発展している第3次産業は？", options: ["観光産業", "IT産業", "金融業", "運輸業"], answer: "観光産業" },
+      { q: "沖縄県において、農業で多く栽培されている作物はさとうきびと何か？", options: ["パイナップル", "りんご", "みかん", "お茶"], answer: "パイナップル" },
+      { q: "沖縄県の大きな課題の一つである、日本にある施設の多くが集中しているものは何か？", options: ["アメリカ軍基地", "原子力発電所", "工業地帯", "過疎地域"], answer: "アメリカ軍基地" },
+      { q: "沖縄県で、かつて行われていた伝統的な織物や染物などの産業を何というか？", options: ["伝統的工芸品産業", "重化学工業", "先端技術産業", "情報通信産業"], answer: "伝統的工芸品産業" }
+    ]
+  }
+};
+
+// DOM要素
+const subjectSelect = document.getElementById('subject-select');
+const categorySelect = document.getElementById('category-select');
+const startBtn = document.getElementById('start-btn');
+const menuScreen = document.getElementById('menu-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+
+// クイズ用変数
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let isAnswering = false;
+
+// 1. メニューの初期化
+Object.keys(studyData).forEach(subject => {
+  const option = document.createElement('option');
+  option.value = subject;
+  option.textContent = subject;
+  subjectSelect.appendChild(option);
+});
+
+// 教科が選ばれたら区分を更新
+subjectSelect.addEventListener('change', (e) => {
+  const subject = e.target.value;
+  categorySelect.innerHTML = '<option value="" disabled selected>区分を選択してください</option>';
+  categorySelect.disabled = false;
+  startBtn.disabled = true;
+  
+  Object.keys(studyData[subject]).forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;
+    categorySelect.appendChild(option);
+  });
+});
+
+// 区分が選ばれたらスタートボタンを有効化
+categorySelect.addEventListener('change', () => {
+  startBtn.disabled = false;
+});
+
+// 2. クイズの開始
+startBtn.addEventListener('click', () => {
+  const subject = subjectSelect.value;
+  const category = categorySelect.value;
+  
+  // 出題順をシャッフルするために配列をコピー
+  currentQuestions = [...studyData[subject][category]];
+  currentQuestions.sort(() => Math.random() - 0.5);
+  
+  currentQuestionIndex = 0;
+  score = 0;
+  
+  document.getElementById('current-category-label').textContent = `${subject} > ${category}`;
+  
+  menuScreen.style.display = 'none';
+  quizScreen.style.display = 'block';
+  
+  loadQuestion();
+});
+
+// 3. 問題の読み込みと表示
+function loadQuestion() {
+  isAnswering = false;
+  const qData = currentQuestions[currentQuestionIndex];
+  
+  document.getElementById('progress-label').textContent = `Q ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+  document.getElementById('question-text').textContent = qData.q;
+  
+  const optionsGrid = document.getElementById('options-grid');
+  optionsGrid.innerHTML = '';
+  
+  // 選択肢も毎回シャッフル
+  const shuffledOptions = [...qData.options].sort(() => Math.random() - 0.5);
+  
+  shuffledOptions.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(btn, opt, qData.answer);
+    optionsGrid.appendChild(btn);
+  });
+}
+
+// 4. 正誤判定
+function checkAnswer(selectedBtn, selectedText, correctText) {
+  if (isAnswering) return; // 連打防止
+  isAnswering = true;
+  
+  const allBtns = document.querySelectorAll('.option-btn');
+  
+  if (selectedText === correctText) {
+    selectedBtn.classList.add('correct');
+    score++;
+  } else {
+    selectedBtn.classList.add('wrong');
+    // 間違えた場合、正解のボタンを緑色にして教える
+    allBtns.forEach(btn => {
+      if (btn.textContent === correctText) btn.classList.add('correct');
+    });
+  }
+  
+  // 1秒後に次の問題へ
+  setTimeout(() => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < currentQuestions.length) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  }, 1000);
+}
+
+// 5. 結果画面の表示
+function showResult() {
+  quizScreen.style.display = 'none';
+  resultScreen.style.display = 'block';
+  
+  const percentage = Math.round((score / currentQuestions.length) * 100);
+  const scoreDisplay = document.getElementById('score-display');
+  const resultDetails = document.getElementById('result-details');
+  const feedback = document.getElementById('feedback-msg');
+  
+  scoreDisplay.textContent = `${percentage}%`;
+  resultDetails.textContent = `全${currentQuestions.length}問中 ${score}問正解`;
+  
+  if (percentage === 100) {
+    scoreDisplay.style.background = 'var(--success)';
+    feedback.textContent = 'パーフェクト！！完璧に理解しています！🔥';
+    feedback.style.color = 'var(--success)';
+  } else if (percentage >= 70) {
+    scoreDisplay.style.background = 'var(--primary)';
+    feedback.textContent = '素晴らしい！その調子で頑張りましょう！👍';
+    feedback.style.color = 'var(--primary)';
+  } else {
+    scoreDisplay.style.background = 'var(--danger)';
+    feedback.textContent = 'あともう少し！間違えた問題を復習しよう💪';
+    feedback.style.color = 'var(--danger)';
+  }
+}
+
+// メニューへ戻る
+function returnToMenu() {
+  resultScreen.style.display = 'none';
+  menuScreen.style.display = 'flex';
+}
+</script>
+
+</body>
+</html>
